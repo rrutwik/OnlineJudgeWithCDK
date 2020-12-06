@@ -66,6 +66,27 @@ public class OnlineJudgeStack extends Stack {
     judgerserver.getService().getConnections().allowFromAnyIpv4(Port.allTraffic());
     testCaseBucket.grantReadWrite(judgerserver.getService().getTaskDefinition().getTaskRole());
     testCaseBucket.grantReadWrite(onlinejudge.getService().getTaskDefinition().getTaskRole());
+//    final ScalableTaskCount autoscaleTaskCount = onlinejudge.getService()
+//        .autoScaleTaskCount(EnableScalingProps.builder().maxCapacity(5).minCapacity(2).build());
+//    autoscaleTaskCount.scaleOnCpuUtilization("OnlineJudgeCpuAutoScale",
+//        CpuUtilizationScalingProps
+//            .builder()
+//            .scaleInCooldown(Duration.minutes(1))
+//            .scaleOutCooldown(Duration.minutes(1))
+//            .targetUtilizationPercent(60)
+//            .build());
+//    autoscaleTaskCount.scaleOnMemoryUtilization("OnlineJudgeMemoryAutoScale",
+//        MemoryUtilizationScalingProps
+//            .builder()
+//            .scaleInCooldown(Duration.minutes(1))
+//            .scaleOutCooldown(Duration.minutes(1))
+//            .targetUtilizationPercent(60)
+//            .build());
+//    ScalableTaskCount scalableTaskCount = new ScalableTaskCount(this, "scalableTaskCount",
+//        ScalableTaskCountProps
+//            .builder()
+//            .
+//        .build());
     // The code that defines your stack goes here
     // Friendly Name To Access website
     final IHostedZone hostedZone = HostedZone.fromHostedZoneAttributes(this, "MyZone",
@@ -103,6 +124,7 @@ public class OnlineJudgeStack extends Stack {
             getEnvironmentVariable("onlinejudge", "onlinejudge", "onlinejudge", dbHost, dbPort,
                 rdHost, rdPort, bucketName))
         .image(ContainerImage.fromAsset("../OJ/OnlineJudge"))
+        .family("OJ")
         .build();
     final NetworkLoadBalancedFargateServiceProps networkLoadBalancedFargateServiceProps = NetworkLoadBalancedFargateServiceProps
         .builder()
@@ -158,6 +180,7 @@ public class OnlineJudgeStack extends Stack {
         .builder()
         .containerName("TestContainer")
         .containerPort(8080)
+        .family("OJ")
         .environment(
             getEnvironmentVariable(backendHost, backendPort,
                 networkLoadBalancer.getLoadBalancerDnsName(), "80", bucketName))

@@ -3,6 +3,8 @@
 APP=/app
 DATA=/data
 
+redis-server --daemonize yes
+
 mkdir -p $DATA/log $DATA/config $DATA/ssl $DATA/test_case $DATA/public/upload $DATA/public/avatar $DATA/public/website
 
 if [ ! -f "$DATA/config/secret.key" ]; then

@@ -11,7 +11,7 @@ RUN buildDeps='software-properties-common git libtool cmake python-dev python3-p
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     mkdir -p /code && \
     useradd -u 12001 compiler && useradd -u 12002 code && useradd -u 12003 spj && usermod -a -G code spj
-HEALTHCHECK --interval=100s --retries=1 CMD curl localhost:8080/healthcheck
+HEALTHCHECK --interval=30s --retries=2 CMD curl localhost:8080/healthcheck
 ADD server /code
 WORKDIR /code
 RUN gcc -shared -fPIC -o unbuffer.so unbuffer.c
