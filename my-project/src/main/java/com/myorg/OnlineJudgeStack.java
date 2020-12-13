@@ -186,7 +186,6 @@ public class OnlineJudgeStack extends Stack {
                 networkLoadBalancer.getLoadBalancerDnsName(), "80", bucketName))
         .image(ContainerImage.fromAsset("../OJ/JudgeServer"))
         .build();
-
     final NetworkLoadBalancedFargateServiceProps networkLoadBalancedFargateServiceProps = NetworkLoadBalancedFargateServiceProps
         .builder()
         .loadBalancer(networkLoadBalancer)

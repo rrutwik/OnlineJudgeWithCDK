@@ -29,10 +29,10 @@ from .serializers import (CreateEditWebsiteConfigSerializer,
                           CreateSMTPConfigSerializer, EditSMTPConfigSerializer,
                           JudgeServerHeartbeatSerializer,
                           JudgeServerSerializer, TestSMTPConfigSerializer, EditJudgeServerSerializer)
-import boto3
-s3 = boto3.client("s3")
-bucketName=os.environ.get("TEST_CASE_BUCKET","ojtest")
+
+from awshelper.s3 import s3_client
 logger = logging.getLogger()
+bucketName=os.environ.get("TEST_CASE_BUCKET","ojtest")
 
 class SMTPAPI(APIView):
     @super_admin_required
@@ -189,7 +189,9 @@ class TestCasePruneAPI(APIView):
     @super_admin_required
     def delete(self, request):
         test_case_id = request.GET.get("id")
+        logger.error("Error zxczxczxc "+ str(test_case_id))
         if test_case_id:
+            logger.error("OLA\n")
             self.delete_one(test_case_id)
             return self.success()
         for id in self.get_orphan_ids():
@@ -201,7 +203,7 @@ class TestCasePruneAPI(APIView):
         db_ids = Problem.objects.all().values_list("test_case_id", flat=True)
         db_ids = [x+".zip" for x in db_ids]
         try:
-            disk_ids = s3.list_objects(Bucket=bucketName)['Contents']
+            disk_ids = s3_client.list_objects(Bucket=bucketName)['Contents']
             disk = [(s["Key"],s["LastModified"].strftime("%Y-%m-%d %H:%M:%S")) for s in disk_ids]
         except Exception as e:
             db_ids = []
@@ -213,8 +215,9 @@ class TestCasePruneAPI(APIView):
 
     @staticmethod
     def delete_one(id):
+        logger.error("Here:- "+str(id))
         try:
-            s3.delete_object(Bucket=bucketName,Key=id+".zip")
+            s3_client.delete_object(Bucket=bucketName,Key=str(id))
             return True
         except Exception as e:
             logger.exception(e)

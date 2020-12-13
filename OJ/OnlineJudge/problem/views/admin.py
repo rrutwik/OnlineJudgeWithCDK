@@ -11,6 +11,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import StreamingHttpResponse, FileResponse
 
+from awshelper.s3 import s3_resource
+
 from account.decorators import problem_permission_required, ensure_created_by
 from contest.models import Contest, ContestStatus
 from fps.parser import FPSHelper, FPSParser
@@ -29,10 +31,8 @@ from ..serializers import (CreateContestProblemSerializer, CompileSPJSerializer,
                            ExportProblemRequestSerialzier, UploadProblemForm, ImportProblemSerializer,
                            FPSProblemSerializer)
 from ..utils import TEMPLATE_BASE, build_problem_template
-import boto3
+
 bucketName=os.environ.get("TEST_CASE_BUCKET","ojtest")
-logger = logging.getLogger()
-s3_client = boto3.client('s3')
 
 class TestCaseZipProcessor(object):
     def uploadDirectory(self, path, name, spj, bucketname=bucketName):
@@ -42,7 +42,7 @@ class TestCaseZipProcessor(object):
         with zipfile.ZipFile(file_name, "w") as file:
             for test_case in name_list:
                 file.write(f"{path}/{test_case}", test_case)
-        s3_client.upload_file(file_name,bucketname, name+".zip")
+        s3_resource.Object(bucketName, name+".zip").upload_file(file_name)
         shutil.rmtree(path)
 
     def process_zip(self, uploaded_zip_file, spj, dir=""):
@@ -128,8 +128,9 @@ class TestCaseAPI(CSRFExemptAPIView, TestCaseZipProcessor):
     request_parsers = ()
     def downloadTestCase(self, test_case_id, bucketname=bucketName):
         try:
-          with open(os.path.join(settings.TEST_CASE_DIR,test_case_id+".zip"), 'wb') as f:
-              s3_client.download_fileobj(bucketname, test_case_id+".zip", f)
+          s3_resource.Object(bucketName, test_case_id+".zip").download_file(os.path.join(settings.TEST_CASE_DIR,test_case_id+".zip"))
+#           with open(os.path.join(settings.TEST_CASE_DIR,test_case_id+".zip"), 'wb') as f:
+#               s3_client.download_fileobj(bucketname, test_case_id+".zip", f)
           with zipfile.ZipFile(os.path.join(settings.TEST_CASE_DIR,test_case_id+".zip"), 'r') as zip_ref:
               zip_ref.extractall(os.path.join(settings.TEST_CASE_DIR, test_case_id))
           return os.path.join(settings.TEST_CASE_DIR,test_case_id+".zip")
